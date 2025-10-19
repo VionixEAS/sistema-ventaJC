@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>JC CHAPAS & HIERROS — Sistema de Ventas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { theme: { extend: { colors: { brand: { 600: '#dc2626', 700: '#b91c1c' }}}}};</script>
+  <link rel="icon" href="assets/logo_jc.svg"/>
+  <!-- jsPDF + autotable for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .print\:block { display: block !important; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <!-- Header / Membrete -->
+  <header class="sticky top-0 z-50 bg-white border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="assets/logo_jc.svg" alt="Logo JC" class="h-10 w-10 rounded-lg"/>
+        <div class="leading-tight">
+          <h1 class="text-lg font-semibold tracking-tight">JC CHAPAS & HIERROS</h1>
+          <p class="text-xs text-gray-600">RUC 6519029-0 • KM 8 Acaray, Barrio San Juan • Tel. 0971 888 289</p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500 no-print">
+        <span>www.jcchapas.com.py</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+    <!-- Sidebar rojo -->
+    <aside class="lg:sticky lg:top-16 self-start">
+      <nav class="bg-brand-700 text-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="px-5 py-4 text-sm font-semibold uppercase bg-brand-600/70">Menú</div>
+        <ul class="p-2">
+          <li><button class="w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/10">🏠 <span class="font-medium">Panel</span></button></li>
+          <li><button class="w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/10" onclick="showView('cotizador')">🧾 <span class="font-medium">Cotizador</span></button></li>
+          <li><button class="w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/10" onclick="showView('ventas')">📚 <span class="font-medium">Registro de Ventas</span></button></li>
+          <li><button class="w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/10" onclick="showView('inventario')">📦 <span class="font-medium">Inventario</span></button></li>
+          <li><button class="w-full text-left flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/10" onclick="showView('config')">⚙️ <span class="font-medium">Configuración</span></button></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="space-y-6">
+      <!-- Acciones rápidas -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
+        <div class="bg-white rounded-2xl shadow-sm border p-5">
+          <div class="flex items-start gap-3">
+            <div class="h-10 w-10 rounded-xl bg-brand-600 text-white grid place-items-center text-lg">➕</div>
+            <div>
+              <h3 class="font-semibold">Nuevo presupuesto</h3>
+              <p class="text-sm text-gray-600">Generar PDF con membrete</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border p-5">
+          <div class="flex items-start gap-3">
+            <div class="h-10 w-10 rounded-xl bg-brand-600 text-white grid place-items-center text-lg">🧰</div>
+            <div>
+              <h3 class="font-semibold">Productos</h3>
+              <p class="text-sm text-gray-600">Precios por kg/metro/unidad</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border p-5">
+          <div class="flex items-start gap-3">
+            <div class="h-10 w-10 rounded-xl bg-brand-600 text-white grid place-items-center text-lg">👤</div>
+            <div>
+              <h3 class="font-semibold">Clientes</h3>
+              <p class="text-sm text-gray-600">Registrar datos básicos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Cotizador -->
+      <section id="view-cotizador" class="bg-white rounded-2xl shadow-sm border">
+        <div class="p-5 border-b">
+          <h2 class="text-base font-semibold">Cotizador</h2>
+          <p class="text-sm text-gray-500">Calcular por unidad, metro o kilo</p>
+        </div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-4 gap-3">
+          <select id="producto" class="px-3 py-2 rounded-xl border">
+            <option value="Chapa Galvanizada 1mm">Chapa Galvanizada 1mm</option>
+            <option value="Hierro Ángulo 2&quot;">Hierro Ángulo 2"</option>
+            <option value="Varilla 8mm">Varilla 8mm</option>
+          </select>
+          <select id="modo" class="px-3 py-2 rounded-xl border">
+            <option value="kg">Por kg</option>
+            <option value="metro">Por metro</option>
+            <option value="unidad">Por unidad</option>
+          </select>
+          <input id="cantidad" class="px-3 py-2 rounded-xl border" placeholder="Cantidad"/>
+          <button class="px-3 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700" onclick="agregarItem()">Agregar</button>
+        </div>
+        <div class="px-5 pb-5 flex items-center justify-between">
+          <div id="subtotal" class="text-sm text-gray-600">0 ítems • Subtotal: <span class="font-semibold text-gray-800">0</span> Gs.</div>
+          <div class="flex gap-2">
+            <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" onclick="generarPDF()">Generar presupuesto (PDF)</button>
+            <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" onclick="limpiarCarrito()">Limpiar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vista Registro de Ventas -->
+      <section id="view-ventas" class="bg-white rounded-2xl shadow-sm border hidden">
+        <div class="p-5 border-b flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-base font-semibold">Registro de Ventas</h2>
+            <p class="text-sm text-gray-500">Historial con filtros por fecha y cliente</p>
+          </div>
+          <div class="flex gap-2 no-print">
+            <button class="px-3 py-2 text-sm rounded-xl border hover:bg-gray-50" onclick="exportarVentasPDF()">Exportar PDF</button>
+          </div>
+        </div>
+        <div class="px-5 py-4 grid grid-cols-1 md:grid-cols-4 gap-3 no-print">
+          <input id="filtro-cliente" class="px-3 py-2 rounded-xl border" placeholder="Buscar cliente"/>
+          <input id="filtro-desde" class="px-3 py-2 rounded-xl border" type="date"/>
+          <input id="filtro-hasta" class="px-3 py-2 rounded-xl border" type="date"/>
+          <button class="px-3 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700" onclick="aplicarFiltros()">Filtrar</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm" id="tabla-ventas">
+            <thead class="bg-gray-50 border-y">
+              <tr class="text-left text-gray-600">
+                <th class="py-3 px-5">#</th>
+                <th class="py-3 px-5">Fecha</th>
+                <th class="py-3 px-5">Cliente</th>
+                <th class="py-3 px-5">Items</th>
+                <th class="py-3 px-5">Método</th>
+                <th class="py-3 px-5 text-right">Total (Gs.)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-ventas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Vista Inventario (placeholder) -->
+      <section id="view-inventario" class="bg-white rounded-2xl shadow-sm border hidden">
+        <div class="p-5 border-b">
+          <h2 class="text-base font-semibold">Inventario</h2>
+          <p class="text-sm text-gray-500">(Próxima etapa)</p>
+        </div>
+        <div class="p-5">
+          <p class="text-sm text-gray-600">Aquí podrás administrar el stock y alertas.</p>
+        </div>
+      </section>
+
+      <!-- Configuración -->
+      <section id="view-config" class="bg-white rounded-2xl shadow-sm border hidden">
+        <div class="p-5 border-b">
+          <h2 class="text-base font-semibold">Configuración</h2>
+          <p class="text-sm text-gray-500">Conexión a Supabase y datos del negocio</p>
+        </div>
+        <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-gray-600">SUPABASE_URL</label>
+            <input id="supabase-url" class="w-full mt-1 px-3 py-2 rounded-xl border" placeholder="https://xxxx.supabase.co"/>
+          </div>
+          <div>
+            <label class="text-sm text-gray-600">SUPABASE_ANON_KEY</label>
+            <input id="supabase-key" class="w-full mt-1 px-3 py-2 rounded-xl border" placeholder="ey..."/>
+          </div>
+          <button class="px-3 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 w-max" onclick="guardarConfig()">Guardar</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="py-6 text-center text-xs text-gray-500">
+    © <span id="year"></span> JC Chapas & Hierros — Sistema de Ventas
+  </footer>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function showView(id) {
+      const views = ['cotizador','ventas','inventario','config'];
+      views.forEach(v => {
+        document.getElementById('view-'+v).classList.toggle('hidden', v !== id);
+      });
+    }
+  </script>
+</body>
+</html>

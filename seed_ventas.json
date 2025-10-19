@@ -1,0 +1,29 @@
+[
+  {
+    "id": "000145",
+    "fecha": "19/10/2025 10:42",
+    "fechaISO": "2025-10-19T10:42:00",
+    "cliente": "Carlos López",
+    "items": "Chapa Galv. 1mm (20kg), Ángulo 2\" (12m)",
+    "metodo": "Efectivo",
+    "total": 1850000
+  },
+  {
+    "id": "000146",
+    "fecha": "19/10/2025 11:05",
+    "fechaISO": "2025-10-19T11:05:00",
+    "cliente": "Constructora Ñandutí",
+    "items": "Varilla 8mm (35kg)",
+    "metodo": "Transferencia",
+    "total": 1390000
+  },
+  {
+    "id": "000147",
+    "fecha": "19/10/2025 12:18",
+    "fechaISO": "2025-10-19T12:18:00",
+    "cliente": "María Pérez",
+    "items": "Chapa Galv. 0.7mm (15kg)",
+    "metodo": "Tarjeta",
+    "total": 980000
+  }
+]
