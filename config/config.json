@@ -1,6 +1,6 @@
 {
-  "SUPABASE_URL": "https://wiujnojlqlxagrhzysla.supabase.co",
-  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpdWpub2pscWx4YWdyaHp5c2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MTQ1NDgsImV4cCI6MjA3NjA5MDU0OH0.PsuwvVdeDxzwhuQ-aF5qHDcOlF7e9SFQq82ewlkyoO8",
+  "SUPABASE_URL": "https://ouqkbxaprfsffczjgggx.supabase.co",
+  "SUPABASE_ANON_KEY": "sb_publishable_6r_Yim7K7qt0jBK6Lt1acQ_4eIYlrM3",
   "TABLES": {
     "productos": "public.productos",
     "ventas": "public.ventas"
