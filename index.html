@@ -2,126 +2,236 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>JC CHAPAS & HIERROS - Sistema de Ventas</title>
-  <link rel="icon" href="assets/logo_jc.svg" />
-  
+  <link rel="icon" href="assets/logo_jc.svg"/>
+
   <!-- Librerías externas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.1/dist/umd/supabase.min.js" defer></script>
 
   <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
+    :root { --red1:#0a0a0a; --red2:#7f1d1d; --red3:#b91c1c; }
     body {
-      background: linear-gradient(135deg, #0a0a0a, #7f1d1d, #b91c1c);
-      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, var(--red1), var(--red2), var(--red3));
       color: #f3f3f3;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      min-height: 100vh;
     }
-    .card {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(185, 28, 28, 0.3);
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(185, 28, 28, 0.2);
+    .glass {
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(185, 28, 28, .3);
       backdrop-filter: blur(8px);
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(185, 28, 28, .2);
     }
     .btn-red {
-      background: #b91c1c;
-      transition: all 0.2s;
+      background:#b91c1c; transition: all .2s;
+      border-radius: .6rem;
     }
-    .btn-red:hover {
-      background: #dc2626;
+    .btn-red:hover { background:#dc2626; }
+    .btn-soft {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: .75rem;
+      transition: all .2s;
     }
+    .btn-soft:hover { background: rgba(255,255,255,.12); }
     .input-dark {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 0.5rem;
-      padding: 0.5rem;
-      color: #fff;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff; border-radius:.6rem; padding:.55rem .75rem;
+    }
+    .sidebar {
+      background: rgba(185, 28, 28, .22);
+      border: 1px solid rgba(185, 28, 28, .35);
+      backdrop-filter: blur(8px);
+      border-radius: 1rem;
+      box-shadow: inset 0 0 8px rgba(0,0,0,.25);
+    }
+    .sidebar a {
+      display:flex; align-items:center; gap:.6rem;
+      padding:.7rem .9rem; border-radius:.7rem;
+      color:#fff;
+    }
+    .sidebar a.active, .sidebar a:hover {
+      background: rgba(255,255,255,.12);
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col">
 
-  <!-- Membrete -->
-  <header class="w-full p-4 bg-gradient-to-r from-red-900 via-red-700 to-red-600 flex items-center justify-between shadow-lg">
-    <div class="flex items-center gap-4">
-      <img src="assets/logo_jc.svg" alt="Logo JC" class="w-16 h-16" />
-      <div>
-        <h1 class="text-2xl font-bold">JC CHAPAS & HIERROS</h1>
+  <!-- Membrete superior -->
+  <header class="w-full px-4 py-3 bg-gradient-to-r from-red-900 via-red-700 to-red-600 shadow-lg">
+    <div class="max-w-7xl mx-auto flex items-center gap-4">
+      <img src="assets/logo_jc.svg" alt="Logo JC" class="w-14 h-14 rounded-md"/>
+      <div class="leading-tight">
+        <h1 class="text-2xl font-extrabold tracking-wide">JC CHAPAS &amp; HIERROS</h1>
         <p class="text-sm">RUC 6519029-0 • KM 8 Acaray, Barrio San Juan • Tel. 0971 888 289</p>
       </div>
     </div>
   </header>
 
-  <!-- Contenedor principal -->
-  <main class="flex-1 p-6 flex flex-col items-center">
-    <div class="w-full max-w-5xl space-y-6">
+  <!-- Layout -->
+  <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 flex-1">
 
-      <!-- Accesos rápidos -->
-      <div class="flex flex-wrap justify-center gap-4">
-        <button id="btnAgregarProducto" class="btn-red px-4 py-2 rounded-lg shadow-md">➕ Agregar Producto</button>
-        <button id="btnNuevoPresupuesto" class="btn-red px-4 py-2 rounded-lg shadow-md">🧾 Nuevo Presupuesto</button>
-        <button id="btnRegistroVentas" class="btn-red px-4 py-2 rounded-lg shadow-md">📜 Registro de Ventas</button>
-      </div>
+    <!-- Sidebar -->
+    <aside class="sidebar p-3 self-start sticky top-4 h-max">
+      <div class="px-2 pb-2 text-xs uppercase tracking-wide text-white/80">Menú</div>
+      <nav class="flex flex-col gap-1">
+        <a href="#" data-view="panel" class="active" onclick="showView('panel', this)">🏠 Panel</a>
+        <a href="#" data-view="cotizador" onclick="showView('cotizador', this)">🧾 Cotizador</a>
+        <a href="#" data-view="ventas" onclick="showView('ventas', this)">📚 Registro de Ventas</a>
+        <a href="#" data-view="inventario" onclick="showView('inventario', this)">📦 Inventario</a>
+        <a href="#" data-view="config" onclick="showView('config', this)">⚙️ Configuración</a>
+      </nav>
+    </aside>
 
-      <!-- Cotizador -->
-      <div id="cotizador" class="card p-6">
-        <h2 class="text-xl font-bold mb-4 text-center">Cotizador de Productos</h2>
+    <!-- Main content -->
+    <main class="space-y-6">
+
+      <!-- PANEL (inicio) -->
+      <section id="view-panel" class="space-y-4">
+        <!-- Accesos rápidos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button id="btnAgregarProducto" class="btn-red px-4 py-3 shadow-md text-left">
+            <div class="font-semibold">➕ Agregar Producto</div>
+            <div class="text-sm text-white/80">Crear nuevo item (kg/metro/unidad)</div>
+          </button>
+
+          <button id="btnNuevoPresupuesto" class="btn-red px-4 py-3 shadow-md text-left">
+            <div class="font-semibold">🧾 Nuevo Presupuesto</div>
+            <div class="text-sm text-white/80">Generar PDF con membrete</div>
+          </button>
+
+          <button id="btnRegistroVentas" class="btn-red px-4 py-3 shadow-md text-left">
+            <div class="font-semibold">📜 Registro de Ventas</div>
+            <div class="text-sm text-white/80">Historial con totales</div>
+          </button>
+        </div>
+
+        <!-- Resumen visual (opcional) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="glass p-4">
+            <div class="text-sm text-white/70">Productos</div>
+            <div class="text-2xl font-bold" id="metricProductos">—</div>
+          </div>
+          <div class="glass p-4">
+            <div class="text-sm text-white/70">Ventas (hoy)</div>
+            <div class="text-2xl font-bold" id="metricVentasHoy">—</div>
+          </div>
+          <div class="glass p-4">
+            <div class="text-sm text-white/70">Ingresos (hoy)</div>
+            <div class="text-2xl font-bold" id="metricIngresosHoy">—</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COTIZADOR -->
+      <section id="view-cotizador" class="glass p-6 hidden">
+        <h2 class="text-xl font-bold mb-2 text-center">Cotizador de Productos</h2>
+        <p class="text-sm text-white/80 text-center mb-4">Calcular por unidad, metro o kilo</p>
+
+        <!-- Lista de productos dinámicos -->
         <div id="listaProductos" class="space-y-2"></div>
 
-        <div class="mt-6 flex justify-between items-center">
-          <button id="btnGenerarPDF" class="btn-red px-4 py-2 rounded-lg">📄 Generar presupuesto (PDF)</button>
-          <button id="btnRegistrarVenta" class="btn-red px-4 py-2 rounded-lg">💾 Registrar Venta</button>
+        <div class="mt-6 flex flex-wrap gap-3 justify-between items-center">
+          <button id="btnGenerarPDF" class="btn-red px-4 py-2">📄 Generar presupuesto (PDF)</button>
+          <button id="btnRegistrarVenta" class="btn-red px-4 py-2">💾 Registrar Venta</button>
         </div>
-      </div>
+      </section>
 
-      <!-- Registro de Ventas -->
-      <div id="registroVentas" class="card p-6 hidden">
+      <!-- REGISTRO DE VENTAS -->
+      <section id="view-ventas" class="glass p-6 hidden">
         <h2 class="text-xl font-bold mb-4 text-center">Registro de Ventas</h2>
-        <div id="tablaVentas" class="overflow-x-auto text-sm"></div>
-      </div>
+        <div id="tablaVentas" class="overflow-x-auto text-sm">
+          <p class="text-center text-white/70">Aún no hay ventas registradas.</p>
+        </div>
+      </section>
 
-    </div>
-  </main>
+      <!-- INVENTARIO (placeholder) -->
+      <section id="view-inventario" class="glass p-6 hidden">
+        <h2 class="text-xl font-bold mb-2">Inventario</h2>
+        <p class="text-white/80 text-sm">Próxima etapa: control de stock, umbrales y alertas.</p>
+      </section>
+
+      <!-- CONFIGURACIÓN -->
+      <section id="view-config" class="glass p-6 hidden">
+        <h2 class="text-xl font-bold mb-4">Configuración</h2>
+        <p class="text-sm text-white/80 mb-4">Las credenciales se leen de <code>config/config.json</code>. No es necesario modificar el código.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="btn-soft p-4">
+            <div class="text-sm text-white/80">Estado de conexión</div>
+            <div id="statusSupabase" class="mt-1 font-semibold">Verificando…</div>
+          </div>
+          <div class="btn-soft p-4">
+            <div class="text-sm text-white/80">Tablas</div>
+            <div class="mt-1">public.productos • public.ventas</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <!-- Modal Agregar Producto -->
   <div id="modalProducto" class="fixed inset-0 hidden items-center justify-center bg-black/60">
-    <div class="card p-6 w-full max-w-md">
+    <div class="glass p-6 w-full max-w-md">
       <h2 class="text-lg font-bold mb-4">Agregar nuevo producto</h2>
-      <input id="nombreProd" class="input-dark w-full mb-3" placeholder="Nombre del producto" />
+      <input id="nombreProd" class="input-dark w-full mb-3" placeholder="Nombre del producto"/>
       <select id="tipoProd" class="input-dark w-full mb-3">
         <option value="kg">Por Kg</option>
         <option value="metro">Por Metro</option>
         <option value="unidad">Por Unidad</option>
       </select>
-      <input id="precioProd" class="input-dark w-full mb-3" type="number" placeholder="Precio" />
+      <input id="precioProd" type="number" class="input-dark w-full mb-3" placeholder="Precio"/>
       <textarea id="descProd" class="input-dark w-full mb-3" placeholder="Descripción (opcional)"></textarea>
       <div class="flex justify-end gap-2">
-        <button id="btnCancelarProd" class="px-3 py-1 bg-gray-500 rounded-lg">Cancelar</button>
-        <button id="btnGuardarProd" class="btn-red px-3 py-1 rounded-lg">Guardar</button>
+        <button id="btnCancelarProd" class="btn-soft px-3 py-1">Cancelar</button>
+        <button id="btnGuardarProd" class="btn-red px-3 py-1">Guardar</button>
       </div>
     </div>
   </div>
 
   <!-- Modal Registrar Venta -->
   <div id="modalVenta" class="fixed inset-0 hidden items-center justify-center bg-black/60">
-    <div class="card p-6 w-full max-w-md">
+    <div class="glass p-6 w-full max-w-md">
       <h2 class="text-lg font-bold mb-4">Registrar venta</h2>
-      <input id="clienteVenta" class="input-dark w-full mb-3" placeholder="Nombre del cliente" />
+      <input id="clienteVenta" class="input-dark w-full mb-3" placeholder="Nombre del cliente"/>
       <select id="metodoVenta" class="input-dark w-full mb-3">
         <option value="Efectivo">Efectivo</option>
         <option value="Transferencia">Transferencia</option>
         <option value="Tarjeta">Tarjeta</option>
       </select>
       <div class="flex justify-end gap-2">
-        <button id="btnCancelarVenta" class="px-3 py-1 bg-gray-500 rounded-lg">Cancelar</button>
-        <button id="btnGuardarVenta" class="btn-red px-3 py-1 rounded-lg">Guardar</button>
+        <button id="btnCancelarVenta" class="btn-soft px-3 py-1">Cancelar</button>
+        <button id="btnGuardarVenta" class="btn-red px-3 py-1">Guardar</button>
       </div>
     </div>
   </div>
 
+  <!-- Scripts de la app -->
+  <script>
+    // Toggle de vistas (sidebar)
+    function showView(view, el) {
+      const ids = ["panel","cotizador","ventas","inventario","config"];
+      ids.forEach(v => {
+        const sec = document.getElementById("view-"+v);
+        if (sec) sec.classList.toggle("hidden", v !== view);
+      });
+      document.querySelectorAll(".sidebar a").forEach(a=>a.classList.remove("active"));
+      if (el) el.classList.add("active");
+      // pequeñas métricas básicas (opcionales)
+      if (view === "config") {
+        const ok = !!(window.supabase && typeof window.supabase.createClient === "function");
+        document.getElementById("statusSupabase").textContent = ok ? "Cliente listo (esperando config.json)" : "Inicializando…";
+      }
+    }
+  </script>
   <script src="js/supabase.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
