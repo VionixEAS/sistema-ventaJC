@@ -1,9 +1,9 @@
 // === JC CHAPAS & HIERROS v3.1 Futurista Pro ===
 // Catálogo con fotos + WhatsApp, Cotizador, Ventas, Supabase
 
-let carrito = [];         // items seleccionados (cotizador/catalogo)
-let productos = [];       // productos desde Supabase
-let seleccionCatalogo = {}; // { id: cantidad } para el catálogo
+let carrito = [];
+let productos = [];
+let seleccionCatalogo = {};
 
 // =============================
 // UTILIDADES
@@ -37,14 +37,12 @@ async function cargarProductos() {
     productos = data || [];
     renderProductosCotizador();
     renderCatalogo();
-    actualizarMetricasPanel();
   } catch (e) {
     console.error("Error cargando productos:", e);
     toast("Error cargando productos", "err");
   }
 }
 
-// ===== Cotizador (lista simple con botón Agregar)
 function renderProductosCotizador() {
   const cont = document.getElementById("listaProductos");
   if (!cont) return;
@@ -81,7 +79,7 @@ function agregarAlCarrito(idProd) {
 }
 
 // =============================
-// CATÁLOGO (público/cliente)
+// CATÁLOGO
 // =============================
 function renderCatalogo(filtro = "") {
   const grid = document.getElementById("gridCatalogo");
@@ -171,150 +169,6 @@ document.getElementById("btnEnviarWA")?.addEventListener("click", () => {
   const mensaje = `Hola, quiero realizar un pedido:\n${lineas}\n\nTOTAL: ${currencyPY(total)}\n\nEnviado desde JC CHAPAS & HIERROS`;
   window.open(buildWAURL(wa, mensaje), "_blank");
 });
-
-// =============================
-// AGREGAR PRODUCTO (con imagen)
-// =============================
-document.getElementById("btnAgregarProducto")?.addEventListener("click", () => abrirModal("modalProducto"));
-document.getElementById("btnCancelarProd")?.addEventListener("click", () => cerrarModal("modalProducto"));
-document.getElementById("btnGuardarProd")?.addEventListener("click", async () => {
-  const nombre = document.getElementById("nombreProd").value.trim();
-  const tipo = document.getElementById("tipoProd").value;
-  const precio = parseFloat(document.getElementById("precioProd").value);
-  const descripcion = document.getElementById("descProd").value.trim();
-  const imagen_url = document.getElementById("imagenProd").value.trim();
-
-  if (!nombre || !precio) { toast("Complete los campos requeridos", "err"); return; }
-
-  try {
-    const { error } = await supabaseClient.from("productos").insert([{ nombre, tipo, precio, descripcion, imagen_url }]);
-    if (error) throw error;
-    toast("Producto agregado");
-    cerrarModal("modalProducto");
-    await cargarProductos();
-  } catch (e) {
-    console.error(e);
-    toast("Error al guardar producto", "err");
-  }
-});
-
-// =============================
-// REGISTRAR VENTA
-// =============================
-document.getElementById("btnRegistrarVenta")?.addEventListener("click", () => abrirModal("modalVenta"));
-document.getElementById("btnCancelarVenta")?.addEventListener("click", () => cerrarModal("modalVenta"));
-document.getElementById("btnGuardarVenta")?.addEventListener("click", async () => {
-  const cliente = document.getElementById("clienteVenta").value.trim();
-  const metodo = document.getElementById("metodoVenta").value;
-
-  if (!carrito.length) { toast("No hay productos en el carrito", "err"); return; }
-
-  const total = totalCarrito();
-  const items = carrito.map(c => `${c.nombre} (${c.cant} ${c.tipo})`).join(", ");
-
-  try {
-    const { error } = await supabaseClient.from("ventas").insert([{
-      id: Date.now().toString(),
-      fecha: new Date().toLocaleString("es-PY"),
-      fechaISO: new Date().toISOString(),
-      cliente, metodo, items, total
-    }]);
-    if (error) throw error;
-    toast("Venta registrada");
-    carrito = [];
-    cerrarModal("modalVenta");
-    await cargarVentas();
-  } catch (e) {
-    console.error(e);
-    toast("Error registrando venta", "err");
-  }
-});
-
-// =============================
-// REGISTRO DE VENTAS (vista)
-// =============================
-document.getElementById("btnRegistroVentas")?.addEventListener("click", async () => {
-  showView("ventas", document.querySelector('[data-view="ventas"]'));
-  await cargarVentas();
-});
-
-async function cargarVentas() {
-  try {
-    const { data, error } = await supabaseClient.from("ventas").select("*").order("fechaISO", { ascending: false });
-    if (error) throw error;
-    const cont = document.getElementById("tablaVentas");
-    if (!cont) return;
-    if (!data.length) { cont.innerHTML = `<p class="text-center text-white/70">Aún no hay ventas registradas.</p>`; return; }
-    let html = `<table class="w-full text-left border-collapse">
-      <thead><tr class="bg-red-800 text-white">
-      <th class="p-2">Fecha</th><th class="p-2">Cliente</th><th class="p-2">Método</th><th class="p-2">Total</th></tr></thead><tbody>`;
-    data.forEach(v => {
-      html += `<tr class="border-b border-red-900/30 hover:bg-red-900/40">
-        <td class="p-2">${v.fecha}</td>
-        <td class="p-2">${v.cliente || '-'}</td>
-        <td class="p-2">${v.metodo}</td>
-        <td class="p-2">${currencyPY(v.total)}</td></tr>`;
-    });
-    html += "</tbody></table>";
-    cont.innerHTML = html;
-  } catch (e) {
-    console.error("Error cargando ventas:", e);
-    toast("Error cargando ventas", "err");
-  }
-}
-
-// =============================
-// PDF (abrir/guardar)
-// =============================
-document.getElementById("btnGenerarPDF")?.addEventListener("click", () => {
-  if (!window.jspdf) { toast("Cargando librerías PDF...", "err"); return; }
-  if (!carrito.length) { toast("Agregue productos al carrito", "err"); return; }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-
-  // Membrete
-  const logo = new Image();
-  logo.src = "assets/logo_jc.svg";
-  doc.addImage(logo, "SVG", 10, 8, 20, 20);
-  doc.setFontSize(14);
-  doc.text("JC CHAPAS & HIERROS", 40, 18);
-  doc.setFontSize(9);
-  doc.text("RUC 6519029-0 • KM 8 Acaray, Barrio San Juan • Tel. 0971 888 289", 40, 24);
-  doc.line(10, 28, 200, 28);
-
-  const body = carrito.map((c, i) => [i+1, c.nombre, c.tipo, c.cant, currencyPY(c.precio), currencyPY(c.total)]);
-  doc.autoTable({ startY: 34, head: [["#","Producto","Tipo","Cant.","Precio","Total"]], body, styles: { fontSize: 9 } });
-
-  const total = totalCarrito();
-  doc.setFontSize(12);
-  doc.text(`TOTAL: ${currencyPY(total)}`, 14, doc.lastAutoTable.finalY + 10);
-
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-  window.open(url, "_blank");
-});
-
-// ===== WhatsApp desde cotizador (opcional botón)
-document.getElementById("btnWAfromCotizador")?.addEventListener("click", () => {
-  const wa = (document.getElementById("waNumber")?.value || "").trim();
-  if (!wa) { toast("Ingresá un número de WhatsApp en el Catálogo", "err"); return; }
-  if (!carrito.length) { toast("Agregá productos al carrito", "err"); return; }
-
-  const lineas = carrito.map(c => `• ${c.nombre} (${c.cant} ${c.tipo}) — ${currencyPY(c.total)}`).join("\n");
-  const total = totalCarrito();
-  const msg = `Hola, quiero pedir:\n${lineas}\n\nTOTAL: ${currencyPY(total)}\n\nEnviado desde JC CHAPAS & HIERROS`;
-  window.open(buildWAURL(wa, msg), "_blank");
-});
-
-// =============================
-// MÉTRICAS (panel)
-// =============================
-function actualizarMetricasPanel() {
-  const mP = document.getElementById("metricProductos");
-  if (mP) mP.textContent = productos.length ?? "—";
-  // (Si querés, podemos traer ventas de hoy y sumar totales)
-}
 
 // =============================
 // ONLOAD

@@ -1,4 +1,4 @@
-// === JC CHAPAS & HIERROS v3 Futurista Pro ===
+// === JC CHAPAS & HIERROS v3.1 Futurista Pro ===
 // Conexión automática a Supabase usando config/config.json
 
 let supabaseClient = null;
