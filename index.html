@@ -83,6 +83,7 @@
     <aside class="sidebar p-3 self-start sticky top-4 h-max">
       <div class="px-2 pb-2 text-xs uppercase tracking-wide text-white/80">Menú</div>
       <nav class="flex flex-col gap-1">
+        <a href="#" data-view="catalogo" onclick="showView('catalogo', this)">🛒 Catálogo</a>
         <a href="#" data-view="panel" class="active" onclick="showView('panel', this)">🏠 Panel</a>
         <a href="#" data-view="cotizador" onclick="showView('cotizador', this)">🧾 Cotizador</a>
         <a href="#" data-view="ventas" onclick="showView('ventas', this)">📚 Registro de Ventas</a>
@@ -135,7 +136,7 @@
       <section id="view-cotizador" class="glass p-6 hidden">
         <h2 class="text-xl font-bold mb-2 text-center">Cotizador de Productos</h2>
         <p class="text-sm text-white/80 text-center mb-4">Calcular por unidad, metro o kilo</p>
-
+<button id="btnWAfromCotizador" class="btn-red px-4 py-2">📲 WhatsApp</button>
         <!-- Lista de productos dinámicos -->
         <div id="listaProductos" class="space-y-2"></div>
 
@@ -144,7 +145,30 @@
           <button id="btnRegistrarVenta" class="btn-red px-4 py-2">💾 Registrar Venta</button>
         </div>
       </section>
+<!-- CATÁLOGO (público/cliente) -->
+<section id="view-catalogo" class="glass p-6 hidden">
+  <h2 class="text-xl font-bold mb-4 text-center">Catálogo de Productos</h2>
 
+  <!-- WhatsApp del negocio -->
+  <div class="mb-4">
+    <label class="text-sm text-white/80">Número de WhatsApp (con país, sin +):</label>
+    <input id="waNumber" class="input-dark w-full mt-1" placeholder="595971888289 (ejemplo)"/>
+  </div>
+
+  <!-- Buscador -->
+  <div class="mb-4">
+    <input id="buscarCatalogo" class="input-dark w-full" placeholder="Buscar producto... (nombre, tipo)"/>
+  </div>
+
+  <!-- Grilla de productos -->
+  <div id="gridCatalogo" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+  <!-- Acciones -->
+  <div class="mt-6 flex flex-wrap gap-3 justify-between items-center">
+    <button id="btnEnviarWA" class="btn-red px-4 py-2">📲 Enviar pedido por WhatsApp</button>
+    <div id="resumenCatalogo" class="text-sm text-white/80">0 ítems seleccionados • Total: Gs 0</div>
+  </div>
+</section>
       <!-- REGISTRO DE VENTAS -->
       <section id="view-ventas" class="glass p-6 hidden">
         <h2 class="text-xl font-bold mb-4 text-center">Registro de Ventas</h2>
@@ -176,6 +200,7 @@
       </section>
 
     </main>
+
   </div>
 
   <!-- Modal Agregar Producto -->
@@ -190,6 +215,7 @@
       </select>
       <input id="precioProd" type="number" class="input-dark w-full mb-3" placeholder="Precio"/>
       <textarea id="descProd" class="input-dark w-full mb-3" placeholder="Descripción (opcional)"></textarea>
+      <input id="imagenProd" class="input-dark w-full mb-3" placeholder="URL de la imagen (https://...)"/>
       <div class="flex justify-end gap-2">
         <button id="btnCancelarProd" class="btn-soft px-3 py-1">Cancelar</button>
         <button id="btnGuardarProd" class="btn-red px-3 py-1">Guardar</button>
